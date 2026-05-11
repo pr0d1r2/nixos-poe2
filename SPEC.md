@@ -168,7 +168,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 |     |    | **— pre-release: open-source prep —**                          |              |
 | T43 | x  | Squash repo to single commit for public release (backup pre-squash branch) | C19 |
 | T44 | _  | Git LFS for demo MP4 asset (doc/demo/*.mp4) — after GitHub repo created | C29 |
-| T45 | ~  | GitHub Actions CI green: add git to CI devShell, verify all hooks pass | C16,C17 |
+| T45 | x  | GitHub Actions CI green: add git to CI devShell, verify all hooks pass | C16,C17 |
 
 ## §B — Bugs
 
