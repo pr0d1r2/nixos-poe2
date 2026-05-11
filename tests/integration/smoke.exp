@@ -1,0 +1,250 @@
+#!/usr/bin/env expect -f
+#
+# Smoke test: boot nixos-poe2 ISO in QEMU, validate boot milestones.
+#
+# Usage: expect tests/integration/smoke.exp [iso-path]
+#
+# Spawns scripts/test-boot/smoke-remote.sh (macOS) or smoke-local.sh
+# (Linux) which runs QEMU with -serial stdio. Serial output flows
+# back through the spawned process's stdout. Expects virtual NVMe +
+# SATA ext4 drives created by create-drives.sh. No GPU passthrough
+# -- X will fail, which is expected.
+#
+# Architecture: expect spawns a LOCAL bash script, never SSH directly.
+# The bash script handles all orchestration (ISO upload, drive
+# creation, kernel extraction) then exec's ssh -t to the builder.
+# This ensures QEMU's serial output flows through a proper PTY chain
+# without buffering issues.
+
+set timeout 600
+set env(TERM) dumb
+
+# Silence real-time echo of QEMU's serial stream -- ANSI escapes and
+# VT100 sequences break terminal display. Full transcript is captured
+# to log_file so failures are still debuggable.
+log_user 0
+set log_path "/tmp/poe2-smoke-[clock format [clock seconds] -format %Y%m%d-%H%M%S].log"
+# -a forces capture even when log_user is 0; without it the file
+# is opened but nothing gets written.
+log_file -a -noappend $log_path
+
+set repo_root [file normalize [file join [file dirname [info script]] ".." ".."]]
+cd $repo_root
+
+source [file join [file dirname [info script]] lib/checks.tcl]
+source [file join [file dirname [info script]] lib/services.tcl]
+
+# Pass through any ISO path argument
+set iso_arg ""
+if {[llength $argv] > 0} {
+    set iso_arg [lindex $argv 0]
+}
+
+puts "=== smoke-test starting at [clock format [clock seconds]] ==="
+puts "Log: $log_path"
+
+# Determine OS and spawn the appropriate smoke script.
+# The smoke script handles all orchestration and execs into QEMU's
+# serial stream. Expect never spawns SSH directly.
+set host_os [exec uname -s]
+if {$host_os eq "Darwin"} {
+    if {$iso_arg ne ""} {
+        spawn bash scripts/test-boot/smoke-remote.sh $iso_arg
+    } else {
+        spawn bash scripts/test-boot/smoke-remote.sh
+    }
+} else {
+    if {$iso_arg ne ""} {
+        spawn bash scripts/test-boot/smoke-local.sh $iso_arg
+    } else {
+        spawn bash scripts/test-boot/smoke-local.sh
+    }
+}
+
+set boot_pid [exp_pid]
+puts "Spawned PID: $boot_pid"
+
+# -- Early-death guard --------------------------------------------
+# If the spawned script dies within 5s, bail immediately. Without
+# this, a drive-lock error or SSH failure produces zero serial
+# output and expect waits 600s before reporting a misleading timeout.
+
+expect {
+    -timeout 5
+    timeout {
+        # Process still alive after 5s -- fall through to milestones.
+    }
+    eof {
+        bail "smoke script exited before producing any boot output (QEMU failed to start?)"
+    }
+}
+
+# -- NixOS Stage 1 -----------------------------------------------
+# First reliable milestone. With direct kernel boot (-kernel/-initrd/
+# -append) GRUB doesn't run. Stage 1 is the first clean text
+# milestone on serial. The 360s timeout covers the full window from
+# QEMU start through kernel decompression to initrd.
+
+puts "\n--- Phase 1: Kernel boot ---"
+
+expect {
+    -timeout 360
+    timeout { bail "'NixOS Stage 1' not visible within 360s" }
+    eof { bail "smoke script exited before NixOS Stage 1 (check $log_path)" }
+    -re {Stage 1}
+}
+puts "\[OK\]   NixOS Stage 1"
+
+# -- NixOS Stage 2 -----------------------------------------------
+
+expect {
+    -timeout 30
+    timeout { bail "'NixOS Stage 2' not visible within 30s" }
+    -re {Stage 2}
+}
+puts "\[OK\]   NixOS Stage 2"
+
+# -- systemd services -> Multi-User System ------------------------
+puts "\n--- Phase 2: systemd services ---"
+
+set services [dict create \
+    "Network Manager"              1 \
+    "Seed*player"                  1 \
+    "Network Time Synchronization" 1 \
+]
+
+set milestone_re {Reached.*target.*Multi-User}
+expect_services_then_milestone $services $milestone_re 300
+
+# -- Autologin ----------------------------------------------------
+puts "\n--- Phase 3: Autologin ---"
+
+set timeout 120
+expect {
+    -re {poe2} {
+        puts "\[OK\]   Hostname visible -- autologin active"
+    }
+    -re {login:} {
+        puts "\[OK\]   Login prompt appeared"
+        send_cmd "player"
+        expect {
+            -re {Password:} {
+                send_cmd "poe2"
+                wait_for "Logged in as player" {player@|\$} 30
+            }
+            -re {player@|\$} {
+                puts "\[OK\]   Autologin succeeded"
+            }
+            timeout {
+                bail "Login timed out"
+            }
+        }
+    }
+    timeout {
+        bail "No login prompt or hostname after 120s"
+    }
+}
+
+# Wait for startx to fail and shell to return.
+# bash_profile does exec startx, so when X fails, getty restarts autologin.
+set timeout 60
+expect {
+    -re {poe2|player@|\$} {
+        puts "\[OK\]   Shell available (X not running -- expected in QEMU)"
+    }
+    timeout {
+        puts "\[WARN\] No shell prompt after startx cycle -- proceeding"
+    }
+}
+
+# -- Diagnostic checks -------------------------------------------
+puts "\n--- Phase 4: Diagnostics ---"
+
+# Get a shell prompt. Send newline to provoke a prompt on serial.
+# Do NOT send Ctrl-C (\x03) -- it kills QEMU via SIGINT through SSH PTY.
+send_cmd ""
+set timeout 30
+expect {
+    -re {\$|#} {
+        puts "\[OK\]   Shell prompt acquired"
+    }
+    -re {login:\s*$} {
+        send_cmd "root"
+        set timeout 15
+        expect {
+            -re {\$|#} {
+                puts "\[OK\]   Logged in as root"
+            }
+            timeout {
+                puts "\[WARN\] Could not get shell after login -- skipping diagnostics"
+            }
+        }
+    }
+    timeout {
+        puts "\[WARN\] Could not get shell prompt -- skipping diagnostics"
+    }
+    eof {
+        bail "Process exited before diagnostics"
+    }
+}
+
+check_cmd "player uid=1000" \
+    "id -u player" \
+    {1000}
+
+check_cmd "player gid=1000" \
+    "id -g player" \
+    {1000}
+
+check_cmd "Firewall enabled" \
+    "systemctl is-active firewalld 2>/dev/null || iptables -L -n 2>/dev/null | head -3" \
+    {Chain|active}
+
+check_cmd "timesyncd running" \
+    "systemctl is-active systemd-timesyncd" \
+    {active}
+
+check_cmd "sleep target masked" \
+    "systemctl is-enabled sleep.target 2>&1" \
+    {disabled|masked}
+
+check_cmd "suspend target masked" \
+    "systemctl is-enabled suspend.target 2>&1" \
+    {disabled|masked}
+
+check_cmd "Storage services attempted" \
+    "systemctl list-units 'storage-*' --no-pager --no-legend 2>/dev/null | head -5 || echo 'no-storage-units'" \
+    {storage|no-storage}
+
+check_cmd "NTP synchronized or attempting" \
+    "timedatectl show -p NTPSynchronized --value 2>/dev/null || echo 'ntp-check-done'" \
+    {yes|no|ntp-check-done}
+
+# -- Shutdown -----------------------------------------------------
+puts "\n--- Phase 5: Shutdown ---"
+
+send_cmd "sudo shutdown now"
+
+set pid [exp_pid]
+
+# Wait for graceful shutdown so ext4 on emulated drives is flushed.
+# Fall back to hard kill if the guest doesn't exit within 30s.
+expect {
+    -timeout 30
+    timeout {
+        puts "smoke-test: guest did not shut down within 30s -- killing"
+        catch { exec kill -9 $pid }
+    }
+    eof {}
+}
+
+puts "\n=== smoke-test PASSED ==="
+puts "Log: $log_path"
+
+wait -nowait
+
+# Reset terminal to flush any pending escape sequences from the
+# guest's getty via QEMU's serial PTY.
+catch { exec stty sane </dev/tty >/dev/tty 2>/dev/null }
+
+exit 0

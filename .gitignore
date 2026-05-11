@@ -1,0 +1,37 @@
+# Never commit GGG's proprietary installer binary.
+# Audited: never present in git history.
+pkgs/installer/*.exe
+
+# Nix build outputs.
+result
+result-*
+
+# Built ISOs (large, versioned by SHA).
+iso/
+
+# Build/smoke/burn completion markers (per git SHA).
+.smoke-passed-*
+.burn-done-*
+
+# Demo recordings (intermediate assets; MP4 committed via LFS).
+doc/demo/*.cast
+doc/demo/*.log
+doc/demo/*.gif
+doc/demo/*.tmp
+doc/demo/*.tmp.*
+
+# Editor / OS noise.
+.direnv/
+*.swp
+*~
+.DS_Store
+
+# User preferences (machine-specific, set via just config).
+config/user/
+
+# SSH keys and secrets (never commit).
+# Audited: never present in git history.
+secrets/
+
+# Claude Code local settings (machine-specific permissions).
+.claude/settings.local.json
