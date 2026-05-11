@@ -11,9 +11,17 @@ burn: smoke _burn-auto-and-mark
 # Full chain: config, build, smoke, burn -- no prompts.
 burn-confirmed: smoke _burn-confirmed-and-mark
 
+# Remove all cached artifacts for HEAD (ISO, smoke, burn markers).
+clean:
+    bash scripts/clean/clean.sh
+
 # Configure user preferences (skips if complete).
 config:
     bash scripts/config/ensure.sh
+
+# Run nix garbage collection on builder node.
+gc:
+    bash scripts/gc/gc.sh
 
 # Manage audio mixing levels on live node via SSH.
 mixer:
@@ -32,7 +40,7 @@ reconfig:
     bash scripts/config/configure.sh
 
 # Record demo GIF of just burn-confirmed.
-record-demo:
+record-demo: gc clean
     bash scripts/record/demo.sh
 
 # Force re-run smoke test for current SHA.

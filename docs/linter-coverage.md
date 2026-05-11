@@ -11,6 +11,7 @@
 | `.gitkeep` | - | Empty directory marker |
 | `.jsonc` | EditorConfig | JSON with comments |
 | `.lock` | - | Nix flake lock |
+| `.mp4` | - | Binary video, LFS-tracked |
 | `.md` | markdownlint | Documentation |
 | `.nix` | nixfmt, statix, deadnix | Nix expressions |
 | `.nix-embedded-shell-allowlist` | - | Lefthook hook config |

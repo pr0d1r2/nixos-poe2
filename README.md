@@ -22,6 +22,10 @@ Windows, or build a live Linux OS with Claude using Nix.
 
 Have fun!
 
+## How?
+
+<video src="doc/demo/burn-confirmed.mp4" controls width="100%"></video>
+
 ## Architecture
 
 ```mermaid

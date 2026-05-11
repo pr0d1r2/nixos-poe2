@@ -3,15 +3,35 @@ pre-commit:
   commands:
     ascii-only:
       exclude: '\.md$'
+    file-size-check:
+      exclude: '\.mp4$'
+    missing-final-newline:
+      exclude: '\.mp4$'
     no-shell-functions:
       exclude: "pkgs/poe2-launch.sh"
+    trailing-whitespace:
+      exclude: '\.mp4$'
+    typos:
+      exclude: '\.mp4$'
+    unicode-lint:
+      exclude: '\.mp4$'
 
 pre-push:
   commands:
     ascii-only:
       exclude: '\.md$'
+    file-size-check:
+      exclude: '\.mp4$'
+    missing-final-newline:
+      exclude: '\.mp4$'
     no-shell-functions:
       exclude: "pkgs/poe2-launch.sh"
+    trailing-whitespace:
+      exclude: '\.mp4$'
+    typos:
+      exclude: '\.mp4$'
+    unicode-lint:
+      exclude: '\.mp4$'
 
 remotes:
   - git_url: https://github.com/pr0d1r2/nix-lefthook-ascii-only
