@@ -5,6 +5,7 @@
 | `.bats` | ShellCheck (via bats) | Test files |
 | `.editorconfig` | EditorConfig | Config format |
 | `.envrc` | direnv | Shell config |
+| `.gitattributes` | - | Git LFS config |
 | `.exp` | - | Expect scripts, no linter |
 | `.gitignore` | - | Git config |
 | `.gitkeep` | - | Empty directory marker |
