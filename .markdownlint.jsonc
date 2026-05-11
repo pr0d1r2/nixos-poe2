@@ -8,5 +8,7 @@
   // Agent skill files are prose fragments, not standalone documents.
   "MD041": false,
   // Pipe-table alignment varies between compact and aligned styles.
-  "MD060": false
+  "MD060": false,
+  // Video embeds require inline HTML.
+  "MD033": { "allowed_elements": ["video"] }
 }
