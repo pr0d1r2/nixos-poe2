@@ -24,7 +24,7 @@ Have fun!
 
 ## How?
 
-<video src="doc/demo/burn-confirmed.mp4" controls width="100%"></video>
+[Watch demo](doc/demo/burn-confirmed.mp4)
 
 ## Architecture
 
