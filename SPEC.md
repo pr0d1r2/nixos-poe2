@@ -166,8 +166,9 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T41 | _  | QEMU + VFIO: GPU passthrough smoke test (requires second GPU on builder) | I.qemu |
 | T42 | _  | QEMU + VFIO: NVMe passthrough for real storage tier testing    | I.qemu       |
 |     |    | **— pre-release: open-source prep —**                          |              |
-| T43 | _  | Squash repo to single commit for public release (backup pre-squash branch) | C19 |
+| T43 | x  | Squash repo to single commit for public release (backup pre-squash branch) | C19 |
 | T44 | _  | Git LFS for demo MP4 asset (doc/demo/*.mp4) — after GitHub repo created | C29 |
+| T45 | ~  | GitHub Actions CI green: add git to CI devShell, verify all hooks pass | C16,C17 |
 
 ## §B — Bugs
 

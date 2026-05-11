@@ -17,6 +17,10 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+      - name: Configure git identity
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@localhost"
       - name: Install lefthook remotes
         run: TERM=dumb nix develop --ignore-environment --keep TERM .#ci --command lefthook install
       - name: Pre-commit checks
@@ -33,6 +37,10 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+      - name: Configure git identity
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@localhost"
       - name: Install lefthook remotes
         run: TERM=dumb nix develop --ignore-environment --keep TERM .#ci --command lefthook install
       - name: Pre-commit checks

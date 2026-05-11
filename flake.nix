@@ -191,6 +191,7 @@
           hookPackages =
             with devPkgs;
             [
+              git
               just
               bats
               parallel
