@@ -24,7 +24,7 @@ Have fun!
 
 ## How?
 
-<video src="doc/demo/burn-confirmed.mp4" controls width="100%"></video>
+https://github.com/user-attachments/assets/5a7a0c15-3030-4f78-888d-508f928bb79a
 
 ## Architecture
 
