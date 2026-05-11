@@ -109,7 +109,7 @@ puts "\n--- Phase 2: systemd services ---"
 
 set services [dict create \
     "Network Manager"              1 \
-    "Seed*player"                  1 \
+    "player home*seed"             1 \
     "Network Time Synchronization" 1 \
 ]
 
