@@ -1,5 +1,7 @@
 # nixos-poe2
 
+[![CI](https://github.com/pr0d1r2/nixos-poe2/actions/workflows/ci.yml/badge.svg)](https://github.com/pr0d1r2/nixos-poe2/actions/workflows/ci.yml)
+
 A bootable USB stick that turns a Ryzen / RTX-class host into a Path of
 Exile 2 console. No desktop environment, no display manager, no Steam: TTY
 autologin → minimal X session → installer (first time) or game (every time
