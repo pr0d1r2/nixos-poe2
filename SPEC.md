@@ -175,10 +175,10 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T44 | _  | Git LFS for demo MP4 asset (doc/demo/*.mp4) — after GitHub repo created | C29 |
 | T45 | x  | GitHub Actions CI green: add git to CI devShell, verify all hooks pass | C16,C17 |
 |     |    | **— login persistence —**                                      |              |
-| T46 | _  | modules/machine-id.nix: stable machine-id baked into ISO       | C34,V39      |
-| T47 | _  | modules/storage/proton.nix: systemd service creating Steam-compat-data dir | C35,V41 |
-| T48 | _  | pkgs/poe2-launch.sh: export STEAM_COMPAT_DATA_PATH             | C35,V40      |
-| T49 | _  | tests: bats coverage for machine-id, proton storage, launch env | C16,V19      |
+| T46 | x  | modules/machine-id.nix: stable machine-id baked into ISO       | C34,V39      |
+| T47 | x  | modules/storage/proton.nix: systemd service creating Steam-compat-data dir | C35,V41 |
+| T48 | x  | pkgs/poe2-launch.sh: export STEAM_COMPAT_DATA_PATH             | C35,V40      |
+| T49 | x  | tests: bats coverage for machine-id, proton storage, launch env | C16,V19      |
 
 ## §B — Bugs
 
