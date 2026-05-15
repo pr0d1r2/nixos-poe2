@@ -175,6 +175,7 @@
           ./modules/storage/sata.nix
           ./modules/storage/link.nix
           ./modules/storage/overlay.nix
+          ./modules/machine-id.nix
         ];
       };
 
