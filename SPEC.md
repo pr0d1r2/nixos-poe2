@@ -41,6 +41,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C31: ext4 game partition mounted `noatime` — reduce write I/O during gameplay
 - C32: Proton/Wine perf env vars: DXVK_ASYNC, fsync, large address aware
 - C33: kernel/sysctl tuned for gaming: transparent hugepages, swappiness=1, TCP BBR
+- C34: stable machine-id across boots — deterministic from seed `nixos-poe2`, baked into ISO
+- C35: Proton compat data at `/mnt/storage/poe2/Steam-compat-data` — login tokens persist across reboots
 
 ### Build time estimates
 
@@ -61,7 +63,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - I.tty: `player` user autologin on tty1, tty2+ = diagnostic shell
 - I.x11: startx from `.bash_profile` → openbox + xset → `poe2-launch`
 - I.launch: `poe2-launch` script — consumes `/mnt/storage`, prefix init, installer/game
-- I.storage: `/mnt/storage/poe2/{prefix,installer,logs,shader-cache}` on host ext4
+- I.storage: `/mnt/storage/poe2/{prefix,installer,logs,shader-cache,Steam-compat-data}` on host ext4
 - I.storage-tiers: systemd oneshots mount NVMe → `/mnt/storage-nvme`, SATA → `/mnt/storage-sata`; `storage-link` symlinks `/mnt/storage` → fastest
 - I.installer-bake: `pkgs/installer/PathOfExile2Installer.exe` → Nix store → ISO
 - I.sudo: narrow allowlist — mkdir, chown only, NOPASSWD for `player`
@@ -113,6 +115,9 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V36: ext4 game partition mounted with `noatime` — no access-time writes during gameplay
 - V37: DXVK async shader compilation enabled — reduces stutter on first encounter
 - V38: TCP BBR congestion control — faster game download on first boot
+- V39: machine-id stable across boots — `a15d0224aec0dee8a812d0f34370c7d2` derived from `echo -n "nixos-poe2" | md5sum`
+- V40: `STEAM_COMPAT_DATA_PATH` points to `/mnt/storage/poe2/Steam-compat-data` — umu-launcher writes Proton state there
+- V41: Proton compat data dir created by systemd before game launch — player-owned, on fastest storage tier
 
 ## §T — Tasks
 
@@ -169,6 +174,11 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T43 | x  | Squash repo to single commit for public release (backup pre-squash branch) | C19 |
 | T44 | _  | Git LFS for demo MP4 asset (doc/demo/*.mp4) — after GitHub repo created | C29 |
 | T45 | x  | GitHub Actions CI green: add git to CI devShell, verify all hooks pass | C16,C17 |
+|     |    | **— login persistence —**                                      |              |
+| T46 | x  | modules/machine-id.nix: stable machine-id baked into ISO       | C34,V39      |
+| T47 | x  | modules/storage/proton.nix: systemd service creating Steam-compat-data dir | C35,V41 |
+| T48 | x  | pkgs/poe2-launch.sh: export STEAM_COMPAT_DATA_PATH             | C35,V40      |
+| T49 | x  | tests: bats coverage for machine-id, proton storage, launch env | C16,V19      |
 
 ## §B — Bugs
 

@@ -66,7 +66,7 @@ info "Storage: $MOUNT -> $real_mount"
 # ---------------------------------------------------------------------------
 # 2. Prepare directory tree (idempotent).
 # ---------------------------------------------------------------------------
-mkdir -p "$ROOT" "$INSTALLER_DIR" "$PREFIX" "$ROOT/logs" "$ROOT/shader-cache"
+mkdir -p "$ROOT" "$INSTALLER_DIR" "$PREFIX" "$ROOT/logs" "$ROOT/shader-cache" "$ROOT/Steam-compat-data"
 
 PERSIST_LOG="$ROOT/logs/poe2-launch-$(date +%Y%m%d-%H%M%S).log"
 cp "$LOG_TMP" "$PERSIST_LOG"
@@ -77,6 +77,7 @@ info "Logging to $PERSIST_LOG"
 # 3. umu / Proton environment.
 # ---------------------------------------------------------------------------
 export WINEPREFIX="$PREFIX"
+export STEAM_COMPAT_DATA_PATH="$ROOT/Steam-compat-data"
 export GAMEID="$GAME_ID"
 
 ge_dir=$(find /run/current-system/sw/share/steam/compatibilitytools.d \
