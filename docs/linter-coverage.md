@@ -20,6 +20,7 @@
 | `.tcl` | tcl-syntax | Tcl scripts |
 | `.tdd-order-baseline` | - | Lefthook hook config |
 | `.toml` | taplo | Config format |
+| `.xml` | xmllint | XML config (Openbox rc.xml) |
 | `.yml` | yamllint | YAML config |
 | `justfile` | justfile-alphabetical, justfile-no-embedded-shell | Task runner |
 | `LICENSE` | - | Plain text, no linter needed |

@@ -220,6 +220,22 @@ check_cmd "NTP synchronized or attempting" \
     "timedatectl show -p NTPSynchronized --value 2>/dev/null || echo 'ntp-check-done'" \
     {yes|no|ntp-check-done}
 
+check_cmd "mumble binary available" \
+    "which mumble 2>/dev/null && echo mumble-found || echo mumble-missing" \
+    {mumble-found}
+
+check_cmd "wmctrl binary available" \
+    "which wmctrl 2>/dev/null && echo wmctrl-found || echo wmctrl-missing" \
+    {wmctrl-found}
+
+check_cmd "Openbox rc.xml delivered" \
+    "test -f /etc/xdg/openbox/rc.xml && echo rc-found || echo rc-missing" \
+    {rc-found}
+
+check_cmd "Openbox rc.xml has Super+M keybind" \
+    "grep -q 'W-m' /etc/xdg/openbox/rc.xml && echo keybind-found || echo keybind-missing" \
+    {keybind-found}
+
 # -- Shutdown -----------------------------------------------------
 puts "\n--- Phase 5: Shutdown ---"
 
