@@ -24,3 +24,11 @@
 @test "restarts game on exit" {
     grep -q 'while true' pkgs/poe2-launch.sh
 }
+
+@test "exports STEAM_COMPAT_DATA_PATH to storage" {
+    grep -q 'STEAM_COMPAT_DATA_PATH' pkgs/poe2-launch.sh
+}
+
+@test "creates Steam-compat-data directory" {
+    grep -q 'Steam-compat-data' pkgs/poe2-launch.sh
+}
