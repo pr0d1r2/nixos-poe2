@@ -177,6 +177,7 @@
           ./modules/storage/overlay.nix
           ./modules/storage/proton.nix
           ./modules/machine-id.nix
+          ./modules/mumble.nix
         ];
       };
 

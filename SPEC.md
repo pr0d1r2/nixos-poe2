@@ -43,6 +43,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C33: kernel/sysctl tuned for gaming: transparent hugepages, swappiness=1, TCP BBR
 - C34: stable machine-id across boots — deterministic from seed `nixos-poe2`, baked into ISO
 - C35: Proton compat data at `/mnt/storage/poe2/Steam-compat-data` — login tokens persist across reboots
+- C36: Mumble voice chat — client only, ~30MB RAM, no Electron
 
 ### Build time estimates
 
@@ -71,6 +72,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - I.changelog: `CHANGELOG.md` — grouped by theme, operator-facing, release = ISO burn
 - I.reset: `poe2-reset` from tty2 — confirms, wipes prefix (keeps game files), optionally wipes shader cache, reboots
 - I.qemu: `just test-boot` → QEMU smoke test on builder — boots ISO, validates TTY autologin, storage detection with virtual ext4 disks, systemd services, network
+- I.mumble: Mumble client auto-launched in background, `Super+M` toggles window, config persisted to `/mnt/storage/poe2/mumble/`
 - I.devshell: `nix develop` — provides just, bats, shellcheck, pv for dev/build work
 - I.password: `config/user/password` → `initialHashedPassword` baked into ISO (empty = passwordless autologin)
 - I.locale: `config/user/keymap` (default: `us`), `config/user/timezone` (default: `Europe/Warsaw`), `config/user/locale` (default: `en_US.UTF-8`) — set via `just config`
@@ -118,6 +120,9 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V39: machine-id stable across boots — `a15d0224aec0dee8a812d0f34370c7d2` derived from `echo -n "nixos-poe2" | md5sum`
 - V40: `STEAM_COMPAT_DATA_PATH` points to `/mnt/storage/poe2/Steam-compat-data` — umu-launcher writes Proton state there
 - V41: Proton compat data dir created by systemd before game launch — player-owned, on fastest storage tier
+- V42: Mumble client launches in background alongside game — does not block game startup or restart loop
+- V43: Mumble config (`~/.config/Mumble/`) persisted to `/mnt/storage/poe2/mumble/` — server bookmarks + client cert survive reboot
+- V44: `Super+M` keybind toggles Mumble window focus — game remains primary window
 
 ## §T — Tasks
 
@@ -179,6 +184,11 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T47 | x  | modules/storage/proton.nix: systemd service creating Steam-compat-data dir | C35,V41 |
 | T48 | x  | pkgs/poe2-launch.sh: export STEAM_COMPAT_DATA_PATH             | C35,V40      |
 | T49 | x  | tests: bats coverage for machine-id, proton storage, launch env | C16,V19      |
+|     |    | **— voice chat —**                                             |              |
+| T50 | x  | modules/mumble.nix: mumble package + storage persistence       | C36,V43,I.mumble |
+| T51 | x  | modules/base.nix: background-launch Mumble from .xinitrc       | V42,I.mumble |
+| T52 | x  | modules/mumble.nix: Openbox keybind Super+M toggle Mumble      | V44,I.mumble |
+| T53 | x  | tests: bats coverage for mumble module + launch integration     | C16,V19      |
 
 ## §B — Bugs
 

@@ -55,6 +55,7 @@ in
       ${pkgs.xorg.xset}/bin/xset s off
       ${pkgs.xorg.xset}/bin/xset -dpms
       ${pkgs.xorg.xset}/bin/xset s noblank
+      ${pkgs.mumble}/bin/mumble &
       exec poe2-launch
     '';
   };
