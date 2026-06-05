@@ -44,8 +44,10 @@ graph TD
 ## Building the ISO
 
 Requires a **Linux x86_64** machine with Nix (flakes enabled). macOS cannot
-build NixOS ISOs natively — use a
-[remote builder](https://nix.dev/tutorials/nixos/distributed-builds-setup.html).
+build NixOS ISOs natively — use a remote builder. The companion project
+[nixos-nix-builder](https://github.com/pr0d1r2/nixos-nix-builder) provides
+a bootable USB appliance that turns any x86_64 machine into a headless nix
+build server, discoverable as `nix-builder.local` via mDNS.
 
 The build compiles NVIDIA proprietary drivers and assembles a full ISO
 closure, so a fast multi-core builder with ample RAM (16 GB+) and disk
