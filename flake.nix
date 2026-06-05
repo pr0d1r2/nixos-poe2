@@ -4,6 +4,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
+    nix-lefthook = {
+      url = "github:pr0d1r2/nix-lefthook";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-lefthook-ascii-only = {
       url = "github:pr0d1r2/nix-lefthook-ascii-only";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -198,7 +203,6 @@
               just
               bats
               parallel
-              lefthook
               shellcheck
               deadnix
               editorconfig-checker
@@ -208,6 +212,7 @@
               yamllint
             ]
             ++ [
+              inputs.nix-lefthook.packages.${system}.default
               inputs.nix-lefthook-ascii-only.packages.${system}.default
               inputs.nix-lefthook-bats-changed.packages.${system}.default
               inputs.nix-lefthook-bats-failures-only.packages.${system}.default
