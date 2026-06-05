@@ -1,7 +1,6 @@
 ---
 output:
   - failure
-  - execution_out
 
 pre-commit:
   commands:
