@@ -200,6 +200,7 @@
             with devPkgs;
             [
               git
+              git-lfs
               just
               bats
               parallel
