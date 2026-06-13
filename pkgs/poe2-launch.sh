@@ -25,8 +25,18 @@ ROOT="$MOUNT/$GAME_DIR_NAME"
 PREFIX="$ROOT/prefix"
 INSTALLER_DIR="$ROOT/installer"
 INSTALLER_EXE="$INSTALLER_DIR/PathOfExile2Installer.exe"
+# PoE 2 keeps two copies of the client binary:
+#   BOOT_EXE -- the installer's "Program Files" copy. Frozen: the installer
+#               drops it once and the patcher never touches it.
+#   HOME_EXE -- the copy PoE 2 self-deploys into its working dir (the player
+#               HOME, where umu/Proton chdirs). The patcher rewrites this one
+#               in place on every game update.
+# Launching BOOT_EXE while the patcher updates HOME_EXE runs a stale binary,
+# so the login server demands a patch every boot (infinite patcher loop).
+# poe2-resolve-exe picks HOME_EXE once it exists; see the launch loop below.
 GAME_EXE_REL="drive_c/Program Files (x86)/Grinding Gear Games/Path of Exile 2/PathOfExile.exe"
-GAME_EXE="$PREFIX/$GAME_EXE_REL"
+BOOT_EXE="$PREFIX/$GAME_EXE_REL"
+HOME_EXE="$HOME/PathOfExile.exe"
 
 LOG_TMP="/tmp/poe2-launch-$(date +%Y%m%d-%H%M%S).log"
 exec > >(tee -a "$LOG_TMP") 2>&1
@@ -106,7 +116,7 @@ fi
 # 5. Wait for installer if game not installed yet.
 # ---------------------------------------------------------------------------
 HOSTNAME="$(hostname).local"
-while [[ ! -f "$GAME_EXE" ]]; do
+while [[ ! -f "$BOOT_EXE" ]]; do
     while [[ ! -f "$INSTALLER_EXE" ]]; do
         info "Waiting for installer at $INSTALLER_EXE
 
@@ -130,7 +140,7 @@ find the game. The actual ~100 GB game download starts after install."
 
     umu-run "$INSTALLER_EXE" || warn "Installer exited non-zero."
 
-    if [[ ! -f "$GAME_EXE" ]]; then
+    if [[ ! -f "$BOOT_EXE" ]]; then
         warn "Game exe not found after installer. Retrying in 5 s..."
         sleep 5
     fi
@@ -140,7 +150,12 @@ done
 # 6. Launch the game (restart on exit/crash).
 # ---------------------------------------------------------------------------
 while true; do
-    info "Launching Path of Exile 2..."
+    # Re-resolve every iteration: the first launch self-deploys HOME_EXE and
+    # each patch rewrites it in place, so on restart we pick up the freshly
+    # patched binary instead of relaunching the stale bootstrap. Fall back to
+    # the bootstrap if HOME_EXE is not there yet (first run).
+    GAME_EXE="$(poe2-resolve-exe "$HOME_EXE" "$BOOT_EXE" || echo "$BOOT_EXE")"
+    info "Launching Path of Exile 2 ($GAME_EXE)..."
     gamemoderun umu-run "$GAME_EXE" || warn "Game exited non-zero."
     info "Game exited. Restarting in 5 s... (Ctrl+Alt+F2 for shell)"
     sleep 5

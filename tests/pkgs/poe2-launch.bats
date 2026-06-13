@@ -32,3 +32,15 @@
 @test "creates Steam-compat-data directory" {
     grep -q 'Steam-compat-data' pkgs/poe2-launch.sh
 }
+
+@test "defines HOME_EXE self-patching client copy" {
+    grep -q 'HOME_EXE=' pkgs/poe2-launch.sh
+}
+
+@test "resolves launch target via poe2-resolve-exe each loop" {
+    grep -q 'poe2-resolve-exe' pkgs/poe2-launch.sh
+}
+
+@test "waits on the bootstrap copy during install" {
+    grep -q 'BOOT_EXE' pkgs/poe2-launch.sh
+}
