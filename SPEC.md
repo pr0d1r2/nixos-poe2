@@ -123,6 +123,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V42: Mumble client launches in background alongside game — does not block game startup or restart loop
 - V43: Mumble config (`~/.config/Mumble/`) persisted to `/mnt/storage/poe2/mumble/` — server bookmarks + client cert survive reboot
 - V44: `Super+M` keybind toggles Mumble window focus — game remains primary window
+- V45: launch the self-patching client copy in the working dir (player HOME) when present — PoE 2 patches that copy in place; the installer's `Program Files` copy is a frozen bootstrap, used only as first-run fallback before HOME is populated
 
 ## §T — Tasks
 
@@ -189,6 +190,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T51 | x  | modules/base.nix: background-launch Mumble from .xinitrc       | V42,I.mumble |
 | T52 | x  | modules/mumble.nix: Openbox keybind Super+M toggle Mumble      | V44,I.mumble |
 | T53 | x  | tests: bats coverage for mumble module + launch integration     | C16,V19      |
+|     |    | **— patch loop fix —**                                         |              |
+| T54 | x  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
 
 ## §B — Bugs
 
@@ -204,3 +207,4 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | B8 | 2025-05-09 | no RAM floor check — low RAM hosts crash unpredictably | T25: check ≥32 GB, console-friendly fatal |
 | B9 | 2025-05-09 | flake.lock not committed | **fixed** flake.lock committed and tracked |
 | B10 | 2025-05-09 | player user has no explicit uid/gid — dynamic allocation violates V20 | **fixed** T30: uid=1000/gid=1000 in users.nix |
+| B11 | 2026-06-13 | poe2-launch launches frozen `Program Files` `PathOfExile.exe`; PoE 2 self-patches the copy in its working dir (player HOME, where Proton chdirs) instead, so the launched binary stays on a stale version — login server demands a patch every boot (infinite patcher/crash loop, recurs each game patch) | T54: `poe2-resolve-exe.sh` resolves HOME copy when present, bootstrap as first-run fallback; launch loop re-resolves each iteration so the in-place-patched binary is picked up on restart |
