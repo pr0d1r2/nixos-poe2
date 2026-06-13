@@ -8,6 +8,10 @@
   game launcher
 - Game launcher with installer loop (retries until game files exist) and game
   restart loop (auto-relaunches on exit/crash)
+- Patch loop fixed: launcher now follows PoE 2's self-patched client copy in
+  the working dir instead of the installer's frozen Program Files copy, so
+  game patches apply on restart with no manual intervention (was an infinite
+  "Please restart Path of Exile" loop on every game update)
 - GGG installer baked into ISO from `pkgs/installer/` via gitignore-aware
   build pipeline
 - Wine prefix and game data on host's internal NVMe/SATA ext4 partition

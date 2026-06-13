@@ -191,7 +191,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T52 | x  | modules/mumble.nix: Openbox keybind Super+M toggle Mumble      | V44,I.mumble |
 | T53 | x  | tests: bats coverage for mumble module + launch integration     | C16,V19      |
 |     |    | **— patch loop fix —**                                         |              |
-| T54 | _  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
+| T54 | x  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
 
 ## §B — Bugs
 
