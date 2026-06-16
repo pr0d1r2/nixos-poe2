@@ -44,6 +44,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C34: stable machine-id across boots — deterministic from seed `nixos-poe2`, baked into ISO
 - C35: Proton compat data at `/mnt/storage/poe2/Steam-compat-data` — login tokens persist across reboots
 - C36: Mumble voice chat — client only, ~30MB RAM, no Electron
+- C37: SSH/remote debug access ON by default; configurable hardening toggle disables SSH + remote access for locked-down production deploys
 
 ### Build time estimates
 
@@ -88,7 +89,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V7: fatal errors display console-friendly message (what happened + what to do in plain language) for 30s before X exits to TTY
 - V8: X session lifecycle clean — game exit → X exit → TTY return
 - V9: shader cache persists across reboots (on host partition)
-- V10: no secrets, no SSH keys, no remote access — console-only appliance
+- V10: no secrets, no SSH keys in repo or ISO — remote access (SSH) intentionally ON for debug; disable-able via hardening toggle (C37, T55)
 - V11: `.exe` files excluded from git via `.gitignore`
 - V12: sudo allowlist minimal — only mkdir/chown, no blanket NOPASSWD
 - V13: Proton-GE bundled in ISO; fallback to umu fetch if not found
@@ -192,6 +193,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T53 | x  | tests: bats coverage for mumble module + launch integration     | C16,V19      |
 |     |    | **— patch loop fix —**                                         |              |
 | T54 | x  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
+|     |    | **— hardening (future) —**                                     |              |
+| T55 | _  | modules: configurable hardening toggle to disable SSH/remote access for production deploys (debug-on default) | C37,V10 |
 
 ## §B — Bugs
 
