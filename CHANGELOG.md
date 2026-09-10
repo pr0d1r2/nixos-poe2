@@ -39,6 +39,12 @@
 - Avahi mDNS: discoverable as `poe2.local`
 - Builder discovery: tries `nix-builder.local` then `poe2.local`
 
+### Base system
+
+- NixOS 26.05 base: kernel 7.2.4, NVIDIA 595.71.05, Mesa 26.1.8,
+  GE-Proton11-1, umu-launcher 1.4.0, PipeWire 1.6.6 (was NixOS 25.11:
+  kernel 7.0.11, NVIDIA 580.142, Mesa 25.2.6, GE-Proton10-33)
+
 ### Hardware
 
 - NVIDIA proprietary + AMD amdgpu drivers in single ISO
