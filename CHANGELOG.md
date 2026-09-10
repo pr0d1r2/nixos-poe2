@@ -61,3 +61,7 @@
 - 33 lefthook git hooks for code quality
 - Just recipes for build, burn, smoke workflows
 - Lefthook install caching for fast shell reload
+- Dev shell loads again after hook repos moved their packages into
+  `nix-lefthook` (six hooks now come from the monorepo)
+- Hook inputs share one copy of their common dependencies: `flake.lock`
+  down from 913 KB to 226 KB, so fewer sources to fetch and evaluate

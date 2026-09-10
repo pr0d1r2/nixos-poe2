@@ -1,151 +1,241 @@
 {
   description = "Bootable NixOS USB pendrive -- boots straight to PoE 2. No desktop, no Steam.";
 
+  # Hook inputs share one nixpkgs-lock, one set-and-setting (anchored on
+  # nix-lefthook) and one nix-dev-shell-agentic (anchored on ascii-only).
+  # Without these follows every hook drags its own copy of each tree into
+  # flake.lock, which blows past the file-size-check limit.
   inputs = {
     nixpkgs-lock.url = "github:pr0d1r2/nixpkgs-lock";
     nixpkgs.follows = "nixpkgs-lock/nixpkgs";
 
     nix-lefthook = {
       url = "github:pr0d1r2/nix-lefthook";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+      };
     };
 
     nix-lefthook-ascii-only = {
       url = "github:pr0d1r2/nix-lefthook-ascii-only";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+      };
     };
     nix-lefthook-bats-changed = {
       url = "github:pr0d1r2/nix-lefthook-bats-changed";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nix-lefthook-bats-failures-only.follows = "nix-lefthook-bats-failures-only";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-bats-failures-only = {
       url = "github:pr0d1r2/nix-lefthook-bats-failures-only";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-bats-parse = {
-      url = "github:pr0d1r2/nix-lefthook-bats-parse";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-bats-unit = {
       url = "github:pr0d1r2/nix-lefthook-bats-unit";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+      };
     };
     nix-lefthook-commit-msg-lint = {
       url = "github:pr0d1r2/nix-lefthook-commit-msg-lint";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-deadnix = {
       url = "github:pr0d1r2/nix-lefthook-deadnix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-editorconfig-checker = {
-      url = "github:pr0d1r2/nix-lefthook-editorconfig-checker";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-execute-permissions = {
       url = "github:pr0d1r2/nix-lefthook-execute-permissions";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-file-size-check = {
       url = "github:pr0d1r2/nix-lefthook-file-size-check";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+        nix-lefthook-unicode-lint.follows = "nix-lefthook-unicode-lint";
+      };
     };
     nix-lefthook-gawk-lint = {
       url = "github:pr0d1r2/nix-lefthook-gawk-lint";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-git-conflict-markers = {
       url = "github:pr0d1r2/nix-lefthook-git-conflict-markers";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-git-no-local-paths = {
-      url = "github:pr0d1r2/nix-lefthook-git-no-local-paths";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-gitleaks = {
       url = "github:pr0d1r2/nix-lefthook-gitleaks";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-justfile-alphabetical = {
-      url = "github:pr0d1r2/nix-lefthook-justfile-alphabetical";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-justfile-no-embedded-shell = {
       url = "github:pr0d1r2/nix-lefthook-justfile-no-embedded-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-linter-coverage = {
       url = "github:pr0d1r2/nix-lefthook-linter-coverage";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-markdownlint = {
-      url = "github:pr0d1r2/nix-lefthook-markdownlint";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-missing-final-newline = {
       url = "github:pr0d1r2/nix-lefthook-missing-final-newline";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-nix-no-embedded-shell = {
       url = "github:pr0d1r2/nix-lefthook-nix-no-embedded-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-nixfmt = {
       url = "github:pr0d1r2/nix-lefthook-nixfmt";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+      };
     };
     nix-lefthook-no-shell-functions = {
       url = "github:pr0d1r2/nix-lefthook-no-shell-functions";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-pre-rebase-merged-commits = {
       url = "github:pr0d1r2/nix-lefthook-pre-rebase-merged-commits";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-shellcheck = {
       url = "github:pr0d1r2/nix-lefthook-shellcheck";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+      };
     };
     nix-lefthook-shfmt = {
       url = "github:pr0d1r2/nix-lefthook-shfmt";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-statix = {
       url = "github:pr0d1r2/nix-lefthook-statix";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-taplo = {
       url = "github:pr0d1r2/nix-lefthook-taplo";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-tdd-order-bats = {
       url = "github:pr0d1r2/nix-lefthook-tdd-order-bats";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-tcl-syntax = {
       url = "github:pr0d1r2/nix-lefthook-tcl-syntax";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-trailing-whitespace = {
       url = "github:pr0d1r2/nix-lefthook-trailing-whitespace";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-dev-shell-agentic.follows = "nix-lefthook-ascii-only/nix-dev-shell-agentic";
+      };
     };
     nix-lefthook-typos = {
       url = "github:pr0d1r2/nix-lefthook-typos";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-unicode-lint = {
       url = "github:pr0d1r2/nix-lefthook-unicode-lint";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
     nix-lefthook-xmllint = {
       url = "github:pr0d1r2/nix-lefthook-xmllint";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-lefthook-yamllint = {
-      url = "github:pr0d1r2/nix-lefthook-yamllint";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        set-and-setting.follows = "nix-lefthook/set-and-setting";
+      };
     };
   };
 
@@ -218,21 +308,21 @@
               inputs.nix-lefthook-ascii-only.packages.${system}.default
               inputs.nix-lefthook-bats-changed.packages.${system}.default
               inputs.nix-lefthook-bats-failures-only.packages.${system}.default
-              inputs.nix-lefthook-bats-parse.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-bats-parse
               inputs.nix-lefthook-bats-unit.packages.${system}.default
               inputs.nix-lefthook-commit-msg-lint.packages.${system}.default
               inputs.nix-lefthook-deadnix.packages.${system}.default
-              inputs.nix-lefthook-editorconfig-checker.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-editorconfig-checker
               inputs.nix-lefthook-execute-permissions.packages.${system}.default
               inputs.nix-lefthook-file-size-check.packages.${system}.default
               inputs.nix-lefthook-gawk-lint.packages.${system}.default
               inputs.nix-lefthook-git-conflict-markers.packages.${system}.default
-              inputs.nix-lefthook-git-no-local-paths.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-git-no-local-paths
               inputs.nix-lefthook-gitleaks.packages.${system}.default
-              inputs.nix-lefthook-justfile-alphabetical.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-justfile-alphabetical
               inputs.nix-lefthook-justfile-no-embedded-shell.packages.${system}.default
               inputs.nix-lefthook-linter-coverage.packages.${system}.default
-              inputs.nix-lefthook-markdownlint.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-markdownlint
               inputs.nix-lefthook-missing-final-newline.packages.${system}.default
               inputs.nix-lefthook-nix-no-embedded-shell.packages.${system}.default
               inputs.nix-lefthook-nixfmt.packages.${system}.default
@@ -248,7 +338,7 @@
               inputs.nix-lefthook-typos.packages.${system}.default
               inputs.nix-lefthook-unicode-lint.packages.${system}.default
               inputs.nix-lefthook-xmllint.packages.${system}.default
-              inputs.nix-lefthook-yamllint.packages.${system}.default
+              inputs.nix-lefthook.packages.${system}.lefthook-yamllint
             ];
 
           interactivePackages = with devPkgs; [
