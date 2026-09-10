@@ -63,6 +63,8 @@
 - ISO file name and QEMU smoke boot follow the pinned NixOS release
   (read from nixpkgs and from the ISO's own boot menu) instead of a
   hardcoded `25.11`
+- QEMU smoke test passes on NixOS 26.05's systemd initrd: boots the ISO
+  with its own kernel command line and recognises the new boot banners
 
 ### Developer experience
 
