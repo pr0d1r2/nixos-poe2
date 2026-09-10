@@ -86,8 +86,9 @@ expect {
 # QEMU start through kernel decompression to initrd.
 #
 # Scripted initrd prints "<<< NixOS Stage 1 >>>". systemd initrd (the
-# NixOS default since 26.05) prints "Welcome to NixOS <rel> (<name>)
-# (Initrd)!" instead -- the initrd os-release PRETTY_NAME. Accept both.
+# NixOS default since 26.05) prints "Booting initrd of NixOS <rel>
+# (<name>) (Initrd)." instead -- the initrd os-release PRETTY_NAME ends
+# in "(Initrd)". Accept both.
 
 puts "\n--- Phase 1: Kernel boot ---"
 
@@ -100,11 +101,16 @@ expect {
 puts "\[OK\]   NixOS Stage 1 (initrd)"
 
 # -- NixOS Stage 2 -----------------------------------------------
+# Scripted boots print "<<< NixOS Stage 2 >>>". On 26.05 (systemd
+# initrd) that banner never reaches serial; stage 2 shows up as
+# systemd's "Welcome to NixOS <rel> (<name>)!" after switch-root.
+# Phase 1 already consumed the initrd's line, so the next welcome is
+# stage 2's.
 
 expect {
     -timeout 30
-    timeout { bail "'NixOS Stage 2' not visible within 30s" }
-    -re {Stage 2}
+    timeout { bail "stage 2 ('Stage 2' or 'Welcome to NixOS') not visible within 30s" }
+    -re {Stage 2|Welcome to NixOS}
 }
 puts "\[OK\]   NixOS Stage 2"
 
