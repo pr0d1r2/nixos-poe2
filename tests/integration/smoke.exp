@@ -23,7 +23,7 @@ set env(TERM) dumb
 # VT100 sequences break terminal display. Full transcript is captured
 # to log_file so failures are still debuggable.
 log_user 0
-set log_path "/tmp/poe2-smoke-[clock format [clock seconds] -format %Y%m%d-%H%M%S].log"
+set log_path "/tmp/poe2-smoke-[clock format [clock seconds] -format %Y%m%d-%H%M%S].log" ;# nolocalpath: transcript on the builder
 # -a forces capture even when log_user is 0; without it the file
 # is opened but nothing gets written.
 log_file -a -noappend $log_path

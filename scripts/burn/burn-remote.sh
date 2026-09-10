@@ -21,7 +21,7 @@ if [ -z "$builder" ]; then
 fi
 
 echo "burn: using remote builder $builder"
-remote_work="/tmp/poe2-burn"
+remote_work="/tmp/poe2-burn" # nolocalpath: path on the builder, not this host
 # shellcheck disable=SC2029
 ssh "$builder" "mkdir -p '$remote_work/scripts/burn'"
 

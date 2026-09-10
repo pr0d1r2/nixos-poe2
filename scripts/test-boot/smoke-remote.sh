@@ -24,7 +24,7 @@ trap 'rc=$?; echo "smoke-remote: FAILED at scripts/test-boot/smoke-remote.sh:${L
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILDER="$(bash "$REPO_ROOT/scripts/lib/find-builder.sh")"
-WORK_DIR="/tmp/poe2-qemu-test"
+WORK_DIR="/tmp/poe2-qemu-test" # nolocalpath: path on the builder, not this host
 
 SHORT_SHA="$(git -C "$REPO_ROOT" rev-parse --short=7 HEAD)"
 STORE_DIR="$(ssh "$BUILDER" sh <"$REPO_ROOT/scripts/build/iso_store_dir.sh")"

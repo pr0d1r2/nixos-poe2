@@ -9,13 +9,14 @@ teardown() {
 }
 
 run_with_paths() {
-    sed \
-        -e "s|/mnt/storage-fast|${TEST_DIR}/FAST|g" \
-        -e "s|/mnt/storage|${TEST_DIR}/STOR|g" \
-        -e "s|/tmp/poe2-iso|${TEST_DIR}/tmp/poe2-iso|g" \
-        -e "s|${TEST_DIR}/FAST|${TEST_DIR}/mnt/storage-fast|g" \
-        -e "s|${TEST_DIR}/STOR|${TEST_DIR}/mnt/storage|g" \
-        scripts/build/iso_store_dir.sh | sh
+    local -a subs=(
+        -e "s|/mnt/storage-fast|${TEST_DIR}/FAST|g"
+        -e "s|/mnt/storage|${TEST_DIR}/STOR|g"
+        -e "s|/tmp/poe2-iso|${TEST_DIR}/tmp/poe2-iso|g" # nolocalpath: rewrites the script's fallback
+        -e "s|${TEST_DIR}/FAST|${TEST_DIR}/mnt/storage-fast|g"
+        -e "s|${TEST_DIR}/STOR|${TEST_DIR}/mnt/storage|g"
+    )
+    sed "${subs[@]}" scripts/build/iso_store_dir.sh | sh
 }
 
 @test "prefers /mnt/storage-fast when it exists" {

@@ -20,7 +20,7 @@ set -Eeuo pipefail
 trap 'rc=$?; echo "smoke-local: FAILED at scripts/test-boot/smoke-local.sh:${LINENO} (exit $rc): ${BASH_COMMAND}" >&2' ERR
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-WORK_DIR="/tmp/poe2-qemu-test"
+WORK_DIR="/tmp/poe2-qemu-test" # nolocalpath: QEMU scratch dir, runs on the builder
 
 ISO="${1:-}"
 if [ -z "$ISO" ]; then
