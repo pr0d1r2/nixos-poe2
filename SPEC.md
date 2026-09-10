@@ -6,7 +6,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 
 ## §C — Constraints
 
-- C1: NixOS flake, minimal installer ISO base (`installation-cd-minimal.nix`), pinned to `nixos-25.11`
+- C1: NixOS flake, minimal installer ISO base (`installation-cd-minimal.nix`), pinned to `nixos-26.05`
 - C2: GPU: NVIDIA proprietary + AMD amdgpu/Mesa in single ISO, auto-detected at boot
 - C3: AMD Ryzen CPU (Zen 2 target, microcode updates on)
 - C4: no DE, no DM, no browser, no file manager — single-purpose gaming appliance
