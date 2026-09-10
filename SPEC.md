@@ -16,7 +16,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C6a: Proton-GE version determined by nixpkgs pin — override via `proton-ge-bin.override` if PoE 2 compat regresses
 - C7: GGG installer `.exe` baked into ISO at build time (not committed to repo)
 - C8: stateless pendrive — all mutable state on host ext4 partition
-- C9: `linuxPackages_latest` for NVIDIA + Wine compat
+- C9: kernel = newest set `nvidiaPackages.stable` builds against. 26.05: default LTS `linuxPackages` (6.18) — `linuxPackages_latest` (7.2) breaks every NVIDIA branch (B15); back to `_latest` via T56
 - C10: 32-bit graphics libs enabled (Wine requires)
 - C11: PipeWire for audio (no PulseAudio daemon)
 - C12: build on macOS via `nix-builder.local` (NixOS ISO requires native x86_64-linux)
@@ -196,6 +196,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T54 | x  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
 |     |    | **— hardening (future) —**                                     |              |
 | T55 | _  | modules: configurable hardening toggle to disable SSH/remote access for production deploys (debug-on default) | C37,V10 |
+|     |    | **— kernel (future) —**                                        |              |
+| T56 | _  | hardware.nix: return to `linuxPackages_latest` once `nvidiaPackages.stable` builds on it (NVIDIA 7.2 support, open-gpu-kernel-modules#1224) | C9,B15 |
 
 ## §B — Bugs
 
@@ -215,3 +217,4 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | B12 | 2026-09-10 | lock refresh broke devShell eval: six hook repos (bats-parse, editorconfig-checker, git-no-local-paths, justfile-alphabetical, markdownlint, yamllint) dropped `packages.default` when binaries moved into `nix-lefthook` as `lefthook-<name>`; bats-changed dropped its `nix-lefthook-bats-failures-only` input (stale `follows`) | **fixed** flake.nix takes those six from `nix-lefthook.packages.<sys>.lefthook-<name>`, drops six dead inputs + stale follows; lefthook.yml remotes unchanged (all still ship `lefthook-remote.yml`). Same refresh pushed flake.lock to 1.27 MB (> file-size-check 1 MiB): hook inputs now `follows` one nixpkgs-lock / set-and-setting / nix-dev-shell-agentic, lock 226 KB. Newer nix-no-embedded-shell flags `shellHook = ''source …''`: now `builtins.readFile ./nix/dev/shell.sh` |
 | B13 | 2026-09-10 | same refresh: three hook binaries gained rules the tree breaks (CI lint-linux red; main's pinned old binaries pass): lefthook-shfmt honors `.editorconfig` instead of forcing `-ci`, ours lacks `switch_case_indent`; lefthook-git-no-local-paths now flags `/tmp/<name>` (7 intentional fixed paths); lefthook-justfile-no-embedded-shell bans `&&`/`\|\|` in recipe bodies (5 recipes) | `.editorconfig` `switch_case_indent = true` (house style, zero reformat); `# nolocalpath` on each intentional path (2 are builder-side, so `${TMPDIR}` would expand on the wrong host); `resmoke` split into two lines (just stops at first failure = `&&`); `check \|\| steps` recipes call new `scripts/lib/skip-or-run.sh` |
 | B14 | 2026-09-10 | 26.05 bump left two `25.11` literals: `build.sh` `NIXOS_REL="25.11"` (26.05 ISO named `…-25.11-…`) and `qemu-cmd.sh` `root=LABEL=nixos-minimal-25.11-x86_64` (ISO volume label follows release, so smoke direct-kernel boot can't find root) | V46: `scripts/build/nixos-release.sh` reads pinned nixpkgs release; `scripts/test-boot/grub-param.sh` reads `init=`/`root=` from ISO grub.cfg, extract-kernel stores both, qemu-cmd uses them |
+| B15 | 2026-09-10 | 26.05 ISO eval passes, build fails: `linuxPackages_latest` = 7.2.4, Linux 7.2 drops `strncpy()`, NVIDIA 595.71.05 `os-interface.c` still calls it — proprietary (`nvidia-kernel-modules`) and open (`nvidia-open`) both fail; no NVIDIA driver supports 7.2 yet (open-gpu-kernel-modules#1224); 7.0/7.1 removed from 26.05 (EOL) | C9: `linuxPackages` (6.18.50 LTS) — probed on builder, `linux-6.18.50-modules` incl. NVIDIA 595.71.05 builds; T56 to return |
