@@ -298,7 +298,7 @@
               shellcheck
               deadnix
               editorconfig-checker
-              nixfmt-rfc-style
+              nixfmt
               shfmt
               typos
               yamllint
