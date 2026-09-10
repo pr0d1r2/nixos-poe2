@@ -5,13 +5,18 @@ setup() {
     mkdir -p "$TEST_DIR/bin" "$TEST_DIR/work" "$TEST_DIR/boot"
     printf '#!/bin/sh\nexit 0\n' >"$TEST_DIR/bin/qemu-system-x86_64"
     chmod +x "$TEST_DIR/bin/qemu-system-x86_64"
-    echo "/nix/store/aaaa-nixos-system/init" >"$TEST_DIR/boot/init-path"
-    echo "LABEL=custom-volume-label" >"$TEST_DIR/boot/root-param"
+    ISO_CMDLINE="init=/nix/store/aaaa-nixos-system/init root=fstab loglevel=4 lsm=landlock,yama,bpf"
+    echo "$ISO_CMDLINE" >"$TEST_DIR/boot/cmdline"
     RUN="$TEST_DIR/work/run-qemu.sh"
 }
 
 teardown() {
     rm -rf "$TEST_DIR"
+}
+
+direct_boot() {
+    PATH="$TEST_DIR/bin:$PATH" run bash scripts/test-boot/qemu-cmd.sh \
+        /iso/poe2.iso "$TEST_DIR/work" "$TEST_DIR/boot"
 }
 
 @test "script is valid bash" {
@@ -34,33 +39,35 @@ teardown() {
     [[ "$output" =~ "Usage" ]]
 }
 
-@test "direct boot takes root= from boot-dir root-param" {
-    PATH="$TEST_DIR/bin:$PATH" run bash scripts/test-boot/qemu-cmd.sh \
-        /iso/poe2.iso "$TEST_DIR/work" "$TEST_DIR/boot"
+@test "direct boot replays the ISO command line first" {
+    direct_boot
     [ "$status" -eq 0 ]
-    grep -q 'root=LABEL=custom-volume-label ' "$RUN"
+    grep -qF -- "-append \"$ISO_CMDLINE console=" "$RUN"
 }
 
-@test "direct boot takes init= from boot-dir init-path" {
-    PATH="$TEST_DIR/bin:$PATH" run bash scripts/test-boot/qemu-cmd.sh \
-        /iso/poe2.iso "$TEST_DIR/work" "$TEST_DIR/boot"
+@test "direct boot adds the serial console" {
+    direct_boot
     [ "$status" -eq 0 ]
-    grep -q 'init=/nix/store/aaaa-nixos-system/init ' "$RUN"
+    grep -q 'console=ttyS0,115200n8' "$RUN"
+}
+
+@test "direct boot adds no root= of its own" {
+    direct_boot
+    [ "$status" -eq 0 ]
+    [ "$(grep -o 'root=' "$RUN" | wc -l | tr -d ' ')" = "1" ]
 }
 
 @test "direct boot hardcodes no ISO volume label" {
-    PATH="$TEST_DIR/bin:$PATH" run bash scripts/test-boot/qemu-cmd.sh \
-        /iso/poe2.iso "$TEST_DIR/work" "$TEST_DIR/boot"
+    direct_boot
     [ "$status" -eq 0 ]
     run ! grep -q 'nixos-minimal' "$RUN"
 }
 
-@test "direct boot fails without root-param" {
-    rm "$TEST_DIR/boot/root-param"
-    PATH="$TEST_DIR/bin:$PATH" run bash scripts/test-boot/qemu-cmd.sh \
-        /iso/poe2.iso "$TEST_DIR/work" "$TEST_DIR/boot"
+@test "direct boot fails without cmdline" {
+    rm "$TEST_DIR/boot/cmdline"
+    direct_boot
     [ "$status" -eq 1 ]
-    [[ "$output" =~ "root-param" ]]
+    [[ "$output" =~ "cmdline" ]]
 }
 
 @test "cdrom boot passes no kernel command line" {
