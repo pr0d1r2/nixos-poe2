@@ -45,7 +45,8 @@ record-demo: gc clean
 
 # Force re-run smoke test for current SHA.
 resmoke: build
-    bash scripts/test-boot/test-boot.sh && bash scripts/test-boot/smoke-mark.sh
+    bash scripts/test-boot/test-boot.sh
+    bash scripts/test-boot/smoke-mark.sh
 
 # QEMU smoke test (skips if SHA already passed).
 smoke: build _smoke-or-skip
@@ -56,16 +57,16 @@ upload:
 
 [private]
 _build-or-skip:
-    bash scripts/build/build-check.sh || bash scripts/build/build.sh
+    bash scripts/lib/skip-or-run.sh scripts/build/build-check.sh scripts/build/build.sh
 
 [private]
 _burn-auto-and-mark:
-    bash scripts/burn/burn-check.sh || (bash scripts/burn/burn-auto.sh && bash scripts/burn/burn-mark.sh)
+    bash scripts/lib/skip-or-run.sh scripts/burn/burn-check.sh scripts/burn/burn-auto.sh scripts/burn/burn-mark.sh
 
 [private]
 _burn-confirmed-and-mark:
-    bash scripts/burn/burn-check.sh || (bash scripts/burn/burn-confirmed.sh && bash scripts/burn/burn-mark.sh)
+    bash scripts/lib/skip-or-run.sh scripts/burn/burn-check.sh scripts/burn/burn-confirmed.sh scripts/burn/burn-mark.sh
 
 [private]
 _smoke-or-skip:
-    bash scripts/test-boot/smoke-check.sh || (bash scripts/test-boot/test-boot.sh && bash scripts/test-boot/smoke-mark.sh)
+    bash scripts/lib/skip-or-run.sh scripts/test-boot/smoke-check.sh scripts/test-boot/test-boot.sh scripts/test-boot/smoke-mark.sh

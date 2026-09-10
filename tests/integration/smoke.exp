@@ -23,7 +23,7 @@ set env(TERM) dumb
 # VT100 sequences break terminal display. Full transcript is captured
 # to log_file so failures are still debuggable.
 log_user 0
-set log_path "/tmp/poe2-smoke-[clock format [clock seconds] -format %Y%m%d-%H%M%S].log"
+set log_path "/tmp/poe2-smoke-[clock format [clock seconds] -format %Y%m%d-%H%M%S].log" ;# nolocalpath: transcript on the host running expect
 # -a forces capture even when log_user is 0; without it the file
 # is opened but nothing gets written.
 log_file -a -noappend $log_path
@@ -79,28 +79,44 @@ expect {
     }
 }
 
-# -- NixOS Stage 1 -----------------------------------------------
+# -- NixOS Stage 1 (initrd) --------------------------------------
 # First reliable milestone. With direct kernel boot (-kernel/-initrd/
-# -append) GRUB doesn't run. Stage 1 is the first clean text
+# -append) GRUB doesn't run. The initrd is the first clean text
 # milestone on serial. The 360s timeout covers the full window from
 # QEMU start through kernel decompression to initrd.
+#
+# Scripted initrd prints "<<< NixOS Stage 1 >>>". systemd initrd (the
+# NixOS default since 26.05) prints "Booting initrd of NixOS <rel>
+# (<name>) (Initrd)." instead -- the initrd os-release PRETTY_NAME ends
+# in "(Initrd)". Accept both.
 
 puts "\n--- Phase 1: Kernel boot ---"
 
 expect {
     -timeout 360
-    timeout { bail "'NixOS Stage 1' not visible within 360s" }
-    eof { bail "smoke script exited before NixOS Stage 1 (check $log_path)" }
-    -re {Stage 1}
+    timeout { bail "initrd ('Stage 1' or '(Initrd)') not visible within 360s" }
+    eof { bail "smoke script exited before the initrd started (check $log_path)" }
+    -re {Stage 1|\(Initrd\)}
 }
-puts "\[OK\]   NixOS Stage 1"
+puts "\[OK\]   NixOS Stage 1 (initrd)"
 
 # -- NixOS Stage 2 -----------------------------------------------
+# Scripted boots print "<<< NixOS Stage 2 >>>". On 26.05 (systemd
+# initrd) that banner never reaches serial; stage 2 shows up as
+# systemd's "Welcome to NixOS <rel> (<name>)!" after switch-root.
+# Phase 1 already consumed the initrd's line, so the next welcome is
+# stage 2's.
+#
+# systemd colours it: "Welcome to \e[0m\e[0;38;2;...mNixOS". \S* spans
+# that escape run (it has no spaces). A plain "Welcome to NixOS" would
+# skip the real line and match the getty banner "<<< Welcome to NixOS
+# ... ttyS0 >>>" instead -- printed after every Phase 2 service, so
+# Phase 2 would wait 300s for lines it had already skipped.
 
 expect {
     -timeout 30
-    timeout { bail "'NixOS Stage 2' not visible within 30s" }
-    -re {Stage 2}
+    timeout { bail "stage 2 ('Stage 2' or 'Welcome to NixOS') not visible within 30s" }
+    -re {Stage 2|Welcome to \S*NixOS}
 }
 puts "\[OK\]   NixOS Stage 2"
 
@@ -113,7 +129,7 @@ set services [dict create \
     "Network Time Synchronization" 1 \
 ]
 
-set milestone_re {Reached.*target.*Multi-User}
+set milestone_re {Reached target[^\r\n]*Multi-User}
 expect_services_then_milestone $services $milestone_re 300
 
 # -- Autologin ----------------------------------------------------

@@ -26,12 +26,18 @@ QEMU_BIN="$(command -v qemu-system-x86_64)"
 RUN_SCRIPT="$work_dir/run-qemu.sh"
 
 BOOT_ARGS=""
-INIT_PATH=""
+APPEND_ARGS=""
 if [ -n "$boot_dir" ]; then
-    BOOT_ARGS="-kernel $boot_dir/bzImage -initrd $boot_dir/initrd"
-    if [ -f "$boot_dir/init-path" ]; then
-        INIT_PATH="$(cat "$boot_dir/init-path")"
+    # Replay the ISO's own kernel command line (extract-kernel.sh reads
+    # it from grub.cfg) and add only the serial console. Never add root=:
+    # the kernel keeps the last one, and the ISO's is the right one.
+    if [ ! -f "$boot_dir/cmdline" ]; then
+        echo "qemu-cmd: $boot_dir/cmdline missing -- run extract-kernel.sh first" >&2
+        exit 1
     fi
+    ISO_CMDLINE="$(cat "$boot_dir/cmdline")"
+    BOOT_ARGS="-kernel $boot_dir/bzImage -initrd $boot_dir/initrd"
+    APPEND_ARGS="-append \"$ISO_CMDLINE console=tty0 console=ttyS0,115200n8\""
 fi
 
 DRIVE_ARGS=""
@@ -55,7 +61,7 @@ $QEMU_BIN \\
     -display none -serial stdio -monitor none -no-reboot \\
     -cdrom $iso \\
     $BOOT_ARGS \\
-    -append "init=$INIT_PATH boot.shell_on_fail root=LABEL=nixos-minimal-25.11-x86_64 console=tty0 console=ttyS0,115200n8 loglevel=4" \\
+    $APPEND_ARGS \\
     $DRIVE_ARGS \\
     -audiodev none,id=noaudio -device intel-hda -device hda-output,audiodev=noaudio \\
     -net nic,model=virtio-net-pci -net user

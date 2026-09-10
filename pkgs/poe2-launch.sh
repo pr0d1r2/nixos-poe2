@@ -38,7 +38,7 @@ GAME_EXE_REL="drive_c/Program Files (x86)/Grinding Gear Games/Path of Exile 2/Pa
 BOOT_EXE="$PREFIX/$GAME_EXE_REL"
 HOME_EXE="$HOME/PathOfExile.exe"
 
-LOG_TMP="/tmp/poe2-launch-$(date +%Y%m%d-%H%M%S).log"
+LOG_TMP="/tmp/poe2-launch-$(date +%Y%m%d-%H%M%S).log" # nolocalpath: runtime log on the booted ISO
 exec > >(tee -a "$LOG_TMP") 2>&1
 
 echo "=== poe2-launch starting at $(date -Iseconds) ==="

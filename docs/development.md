@@ -96,6 +96,6 @@ USB burn speed depends on media (Kingston DT Kyson: ~5 MB/s write).
 
 ## Proton-GE compatibility
 
-The Proton-GE version is determined by the `nixos-25.11` nixpkgs pin. If a
+The Proton-GE version is determined by the `nixos-26.05` nixpkgs pin. If a
 nixpkgs update ships a Proton-GE that breaks PoE 2 compatibility, override
 it in `flake.nix` via `proton-ge-bin.override` to pin a known-good version.

@@ -116,7 +116,9 @@ preference, then rebuild the ISO.
   mirror the same output. No xrandr configuration needed. PoE 2 renders
   on one display; the game does not support multi-monitor spanning.
 - **Minimum RAM**: 32 GB. The launcher refuses to start on hosts with less.
-- `linuxPackages_latest` is used so recent NVIDIA + recent Wine work.
+- The kernel is the newest one the NVIDIA driver builds against. On NixOS
+  26.05 that is the default LTS (6.18): Linux 7.2 dropped an API every
+  current NVIDIA driver still uses.
 - AMD CPU microcode updates are on (covers Ryzen 3700X).
 - 32-bit graphics libs are enabled (Wine needs them).
 - No sleep, suspend, or DPMS — the box never power-manages mid-game.

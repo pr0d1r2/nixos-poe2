@@ -30,3 +30,11 @@ teardown() {
     [ "$status" -eq 0 ]
     [[ "$output" =~ "already exists" ]]
 }
+
+@test "hardcodes no NixOS release" {
+    run ! grep -qE '[0-9]{2}\.(05|11)' "$TEST_DIR/scripts/build/build.sh"
+}
+
+@test "reads the NixOS release from nixos-release.sh" {
+    grep -q 'scripts/build/nixos-release.sh' "$TEST_DIR/scripts/build/build.sh"
+}

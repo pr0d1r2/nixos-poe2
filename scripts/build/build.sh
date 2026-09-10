@@ -11,7 +11,6 @@ trap 'rc=$?; echo "build: FAILED at scripts/build/build.sh:${LINENO} (exit $rc):
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-NIXOS_REL="25.11"
 TARGET_ARCH="x86_64"
 TARGET_OS="linux"
 
@@ -47,6 +46,9 @@ fi
 TS="$(date -u +%Y%m%d-%H%M)"
 DATE="${TS%-*}"
 TIME="${TS#*-}"
+
+# Release comes from the pinned nixpkgs, never a literal (V46).
+NIXOS_REL="$(bash "$REPO_ROOT/scripts/build/nixos-release.sh" "$REPO_ROOT")"
 
 FILENAME="$(bash "$REPO_ROOT/scripts/build/version.sh" \
     "$NIXOS_REL" "$DATE" "$TIME" "$GITSHA" "$TARGET_ARCH" "$TARGET_OS")"

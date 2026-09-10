@@ -6,7 +6,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 
 ## §C — Constraints
 
-- C1: NixOS flake, minimal installer ISO base (`installation-cd-minimal.nix`), pinned to `nixos-25.11`
+- C1: NixOS flake, minimal installer ISO base (`installation-cd-minimal.nix`), pinned to `nixos-26.05`
 - C2: GPU: NVIDIA proprietary + AMD amdgpu/Mesa in single ISO, auto-detected at boot
 - C3: AMD Ryzen CPU (Zen 2 target, microcode updates on)
 - C4: no DE, no DM, no browser, no file manager — single-purpose gaming appliance
@@ -16,7 +16,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C6a: Proton-GE version determined by nixpkgs pin — override via `proton-ge-bin.override` if PoE 2 compat regresses
 - C7: GGG installer `.exe` baked into ISO at build time (not committed to repo)
 - C8: stateless pendrive — all mutable state on host ext4 partition
-- C9: `linuxPackages_latest` for NVIDIA + Wine compat
+- C9: kernel = newest set `nvidiaPackages.stable` builds against. 26.05: default LTS `linuxPackages` (6.18) — `linuxPackages_latest` (7.2) breaks every NVIDIA branch (B15); back to `_latest` via T56
 - C10: 32-bit graphics libs enabled (Wine requires)
 - C11: PipeWire for audio (no PulseAudio daemon)
 - C12: build on macOS via `nix-builder.local` (NixOS ISO requires native x86_64-linux)
@@ -125,6 +125,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V43: Mumble config (`~/.config/Mumble/`) persisted to `/mnt/storage/poe2/mumble/` — server bookmarks + client cert survive reboot
 - V44: `Super+M` keybind toggles Mumble window focus — game remains primary window
 - V45: launch the self-patching client copy in the working dir (player HOME) when present — PoE 2 patches that copy in place; the installer's `Program Files` copy is a frozen bootstrap, used only as first-run fallback before HOME is populated
+- V46: no NixOS release literal outside `flake.lock` (+ docs/spec prose) — scripts derive it: ISO file name from pinned nixpkgs `lib.trivial.release`; QEMU direct boot uses the built ISO's own kernel command line (first grub.cfg `linux` entry, GRUB vars dropped) + serial console only
 
 ## §T — Tasks
 
@@ -195,6 +196,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T54 | x  | pkgs/poe2-resolve-exe.sh + poe2-launch: launch self-patching HOME client copy each loop, not frozen Program Files bootstrap | B11,V45 |
 |     |    | **— hardening (future) —**                                     |              |
 | T55 | _  | modules: configurable hardening toggle to disable SSH/remote access for production deploys (debug-on default) | C37,V10 |
+|     |    | **— kernel (future) —**                                        |              |
+| T56 | _  | hardware.nix: return to `linuxPackages_latest` once `nvidiaPackages.stable` builds on it (NVIDIA 7.2 support, open-gpu-kernel-modules#1224) | C9,B15 |
 
 ## §B — Bugs
 
@@ -211,3 +214,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | B9 | 2025-05-09 | flake.lock not committed | **fixed** flake.lock committed and tracked |
 | B10 | 2025-05-09 | player user has no explicit uid/gid — dynamic allocation violates V20 | **fixed** T30: uid=1000/gid=1000 in users.nix |
 | B11 | 2026-06-13 | poe2-launch launches frozen `Program Files` `PathOfExile.exe`; PoE 2 self-patches the copy in its working dir (player HOME, where Proton chdirs) instead, so the launched binary stays on a stale version — login server demands a patch every boot (infinite patcher/crash loop, recurs each game patch) | T54: `poe2-resolve-exe.sh` resolves HOME copy when present, bootstrap as first-run fallback; launch loop re-resolves each iteration so the in-place-patched binary is picked up on restart |
+| B12 | 2026-09-10 | lock refresh broke devShell eval: six hook repos (bats-parse, editorconfig-checker, git-no-local-paths, justfile-alphabetical, markdownlint, yamllint) dropped `packages.default` when binaries moved into `nix-lefthook` as `lefthook-<name>`; bats-changed dropped its `nix-lefthook-bats-failures-only` input (stale `follows`) | **fixed** flake.nix takes those six from `nix-lefthook.packages.<sys>.lefthook-<name>`, drops six dead inputs + stale follows; lefthook.yml remotes unchanged (all still ship `lefthook-remote.yml`). Same refresh pushed flake.lock to 1.27 MB (> file-size-check 1 MiB): hook inputs now `follows` one nixpkgs-lock / set-and-setting / nix-dev-shell-agentic, lock 226 KB. Newer nix-no-embedded-shell flags `shellHook = ''source …''`: now `builtins.readFile ./nix/dev/shell.sh` |
+| B13 | 2026-09-10 | same refresh: three hook binaries gained rules the tree breaks (CI lint-linux red; main's pinned old binaries pass): lefthook-shfmt honors `.editorconfig` instead of forcing `-ci`, ours lacks `switch_case_indent`; lefthook-git-no-local-paths now flags `/tmp/<name>` (7 intentional fixed paths); lefthook-justfile-no-embedded-shell bans `&&`/`\|\|` in recipe bodies (5 recipes) | `.editorconfig` `switch_case_indent = true` (house style, zero reformat); `# nolocalpath` on each intentional path (2 are builder-side, so `${TMPDIR}` would expand on the wrong host); `resmoke` split into two lines (just stops at first failure = `&&`); `check \|\| steps` recipes call new `scripts/lib/skip-or-run.sh` |
+| B14 | 2026-09-10 | 26.05 bump left two `25.11` literals: `build.sh` `NIXOS_REL="25.11"` (26.05 ISO named `…-25.11-…`) and `qemu-cmd.sh` `root=LABEL=nixos-minimal-25.11-x86_64` (ISO volume label follows release, so smoke direct-kernel boot can't find root) | V46: `scripts/build/nixos-release.sh` reads pinned nixpkgs release; `scripts/test-boot/grub-param.sh` reads `init=`/`root=` from ISO grub.cfg, extract-kernel stores both, qemu-cmd uses them |
+| B15 | 2026-09-10 | 26.05 ISO eval passes, build fails: `linuxPackages_latest` = 7.2.4, Linux 7.2 drops `strncpy()`, NVIDIA 595.71.05 `os-interface.c` still calls it — proprietary (`nvidia-kernel-modules`) and open (`nvidia-open`) both fail; no NVIDIA driver supports 7.2 yet (open-gpu-kernel-modules#1224); 7.0/7.1 removed from 26.05 (EOL) | C9: `linuxPackages` (6.18.50 LTS) — probed on builder, `linux-6.18.50-modules` incl. NVIDIA 595.71.05 builds; T56 to return |
+| B16 | 2026-09-10 | 26.05 defaults `boot.initrd.systemd.enable = true`: ISO kernel params are `root=fstab loglevel=4 lsm=…` — no `root=LABEL=…`/`boot.shell_on_fail` (iso-image.nix finds media via `/dev/disk/by-label/<volumeID>`), so B14's `root-param` from grub.cfg would be `fstab`, and any appended `root=LABEL=…` (last `root=` wins) points systemd-fstab-generator at the iso9660 as `/sysroot`; smoke Phases 1/2 wait for scripted "Stage 1"/"Stage 2" banners — real 26.05 serial transcript has neither: `Booting initrd of NixOS 26.05 (Yarara) (Initrd).` then `Welcome to NixOS 26.05 (Yarara)!` | QEMU direct boot replays the ISO's whole first `linux` line (`grub-cmdline.sh` → `<boot-dir>/cmdline`) + console, replacing `grub-param.sh`/`root-param`/`init-path`; smoke Phase 1 accepts `Stage 1\|(Initrd)`, Phase 2 `Stage 2\|Welcome to \S*NixOS` (systemd colours the welcome: an ANSI run sits between "Welcome to " and "NixOS"; plain regex skipped it and matched the later getty banner → Phase 2 timed out on services it had already passed) |

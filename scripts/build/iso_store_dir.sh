@@ -11,7 +11,7 @@ if [ -d /mnt/storage-fast ]; then
 elif [ -d /mnt/storage ]; then
     store=/mnt/storage/poe2-iso
 else
-    store=/tmp/poe2-iso
+    store=/tmp/poe2-iso # nolocalpath: builder fallback, no storage mount
 fi
 
 mkdir -p "$store"

@@ -39,6 +39,12 @@
 - Avahi mDNS: discoverable as `poe2.local`
 - Builder discovery: tries `nix-builder.local` then `poe2.local`
 
+### Base system
+
+- NixOS 26.05 base: kernel 6.18.50 LTS, NVIDIA 595.71.05, Mesa 26.1.8,
+  GE-Proton11-1, umu-launcher 1.4.0, PipeWire 1.6.6 (was NixOS 25.11:
+  kernel 7.0.11, NVIDIA 580.142, Mesa 25.2.6, GE-Proton10-33)
+
 ### Hardware
 
 - NVIDIA proprietary + AMD amdgpu drivers in single ISO
@@ -54,6 +60,11 @@
 - Remote burn support
 - QEMU smoke test with direct kernel boot
 - Expect-based integration test suite
+- ISO file name and QEMU smoke boot follow the pinned NixOS release
+  (read from nixpkgs and from the ISO's own boot menu) instead of a
+  hardcoded `25.11`
+- QEMU smoke test passes on NixOS 26.05's systemd initrd: boots the ISO
+  with its own kernel command line and recognises the new boot banners
 
 ### Developer experience
 
@@ -61,3 +72,7 @@
 - 33 lefthook git hooks for code quality
 - Just recipes for build, burn, smoke workflows
 - Lefthook install caching for fast shell reload
+- Dev shell loads again after hook repos moved their packages into
+  `nix-lefthook` (six hooks now come from the monorepo)
+- Hook inputs share one copy of their common dependencies: `flake.lock`
+  down from 913 KB to 226 KB, so fewer sources to fetch and evaluate

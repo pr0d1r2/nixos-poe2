@@ -35,9 +35,9 @@ in
   environment = {
     systemPackages = with pkgs; [
       openbox
-      xorg.xinit
-      xorg.xrandr
-      xorg.xset
+      xinit
+      xrandr
+      xset
       util-linux
       coreutils
       e2fsprogs
@@ -52,9 +52,9 @@ in
     etc."skel/.xinitrc".text = ''
       #!/bin/sh
       ${pkgs.openbox}/bin/openbox &
-      ${pkgs.xorg.xset}/bin/xset s off
-      ${pkgs.xorg.xset}/bin/xset -dpms
-      ${pkgs.xorg.xset}/bin/xset s noblank
+      ${pkgs.xset}/bin/xset s off
+      ${pkgs.xset}/bin/xset -dpms
+      ${pkgs.xset}/bin/xset s noblank
       ${pkgs.mumble}/bin/mumble &
       exec poe2-launch
     '';
