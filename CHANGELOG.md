@@ -60,6 +60,9 @@
 - Remote burn support
 - QEMU smoke test with direct kernel boot
 - Expect-based integration test suite
+- ISO file name and QEMU smoke boot follow the pinned NixOS release
+  (read from nixpkgs and from the ISO's own boot menu) instead of a
+  hardcoded `25.11`
 
 ### Developer experience
 
