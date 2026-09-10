@@ -106,11 +106,17 @@ puts "\[OK\]   NixOS Stage 1 (initrd)"
 # systemd's "Welcome to NixOS <rel> (<name>)!" after switch-root.
 # Phase 1 already consumed the initrd's line, so the next welcome is
 # stage 2's.
+#
+# systemd colours it: "Welcome to \e[0m\e[0;38;2;...mNixOS". \S* spans
+# that escape run (it has no spaces). A plain "Welcome to NixOS" would
+# skip the real line and match the getty banner "<<< Welcome to NixOS
+# ... ttyS0 >>>" instead -- printed after every Phase 2 service, so
+# Phase 2 would wait 300s for lines it had already skipped.
 
 expect {
     -timeout 30
     timeout { bail "stage 2 ('Stage 2' or 'Welcome to NixOS') not visible within 30s" }
-    -re {Stage 2|Welcome to NixOS}
+    -re {Stage 2|Welcome to \S*NixOS}
 }
 puts "\[OK\]   NixOS Stage 2"
 
