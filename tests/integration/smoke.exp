@@ -129,7 +129,7 @@ set services [dict create \
     "Network Time Synchronization" 1 \
 ]
 
-set milestone_re {Reached.*target.*Multi-User}
+set milestone_re {Reached target[^\r\n]*Multi-User}
 expect_services_then_milestone $services $milestone_re 300
 
 # -- Autologin ----------------------------------------------------
