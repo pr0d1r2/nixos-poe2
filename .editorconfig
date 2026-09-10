@@ -13,6 +13,7 @@ indent_size = 2
 [*.sh]
 indent_style = space
 indent_size = 4
+switch_case_indent = true
 
 [*.md]
 trim_trailing_whitespace = false
