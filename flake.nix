@@ -261,9 +261,7 @@
         {
           default = devPkgs.mkShell {
             buildInputs = hookPackages ++ interactivePackages;
-            shellHook = ''
-              source ${./nix/dev/shell.sh}
-            '';
+            shellHook = builtins.readFile ./nix/dev/shell.sh;
           };
 
           ci = devPkgs.mkShell {
