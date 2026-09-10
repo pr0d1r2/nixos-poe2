@@ -26,12 +26,21 @@ QEMU_BIN="$(command -v qemu-system-x86_64)"
 RUN_SCRIPT="$work_dir/run-qemu.sh"
 
 BOOT_ARGS=""
-INIT_PATH=""
+APPEND_ARGS=""
 if [ -n "$boot_dir" ]; then
-    BOOT_ARGS="-kernel $boot_dir/bzImage -initrd $boot_dir/initrd"
+    # root= comes from the ISO's own grub.cfg (extract-kernel.sh): the
+    # volume label embeds the NixOS release, so it must not be guessed.
+    if [ ! -f "$boot_dir/root-param" ]; then
+        echo "qemu-cmd: $boot_dir/root-param missing -- run extract-kernel.sh first" >&2
+        exit 1
+    fi
+    ROOT_PARAM="$(cat "$boot_dir/root-param")"
+    INIT_PATH=""
     if [ -f "$boot_dir/init-path" ]; then
         INIT_PATH="$(cat "$boot_dir/init-path")"
     fi
+    BOOT_ARGS="-kernel $boot_dir/bzImage -initrd $boot_dir/initrd"
+    APPEND_ARGS="-append \"init=$INIT_PATH boot.shell_on_fail root=$ROOT_PARAM console=tty0 console=ttyS0,115200n8 loglevel=4\""
 fi
 
 DRIVE_ARGS=""
@@ -55,7 +64,7 @@ $QEMU_BIN \\
     -display none -serial stdio -monitor none -no-reboot \\
     -cdrom $iso \\
     $BOOT_ARGS \\
-    -append "init=$INIT_PATH boot.shell_on_fail root=LABEL=nixos-minimal-25.11-x86_64 console=tty0 console=ttyS0,115200n8 loglevel=4" \\
+    $APPEND_ARGS \\
     $DRIVE_ARGS \\
     -audiodev none,id=noaudio -device intel-hda -device hda-output,audiodev=noaudio \\
     -net nic,model=virtio-net-pci -net user
