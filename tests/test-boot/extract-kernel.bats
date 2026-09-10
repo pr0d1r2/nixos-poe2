@@ -28,23 +28,27 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "skips when kernel, initrd and root-param are newer than the ISO" {
-    echo "LABEL=x" >"$BOOT/root-param"
+@test "skips when kernel, initrd and cmdline are newer than the ISO" {
+    echo "init=/nix/store/x/init root=fstab" >"$BOOT/cmdline"
     run bash scripts/test-boot/extract-kernel.sh "$ISO" "$BOOT"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "already extracted" ]]
 }
 
-@test "re-extracts when root-param is missing" {
+@test "re-extracts when cmdline is missing" {
+    echo "LABEL=x" >"$BOOT/root-param"
     run bash scripts/test-boot/extract-kernel.sh "$ISO" "$BOOT"
     [[ ! "$output" =~ "already extracted" ]]
 }
 
-@test "reads init= and root= from grub.cfg through grub-param.sh" {
-    grep -qE 'grub-param\.sh.*GRUB_CFG"? init' scripts/test-boot/extract-kernel.sh
-    grep -qE 'grub-param\.sh.*GRUB_CFG"? root' scripts/test-boot/extract-kernel.sh
+@test "reads the kernel command line from grub.cfg through grub-cmdline.sh" {
+    grep -qE 'grub-cmdline\.sh.*GRUB_CFG' scripts/test-boot/extract-kernel.sh
 }
 
-@test "writes root-param into the boot dir" {
-    grep -q 'BOOT_DIR/root-param' scripts/test-boot/extract-kernel.sh
+@test "writes cmdline into the boot dir" {
+    grep -q 'BOOT_DIR/cmdline' scripts/test-boot/extract-kernel.sh
+}
+
+@test "no longer derives root-param or init-path" {
+    run ! grep -qE 'root-param|init-path|grub-param' scripts/test-boot/extract-kernel.sh
 }
