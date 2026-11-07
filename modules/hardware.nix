@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -29,9 +28,6 @@
   services.xserver.videoDrivers = [ "nvidia" ];
 
   boot = {
-    # Default LTS, not linuxPackages_latest: Linux 7.2 dropped strncpy()
-    # and no NVIDIA driver builds against it yet (SPEC C9, B15, T56).
-    kernelPackages = pkgs.linuxPackages;
     tmp.useTmpfs = true;
     tmp.tmpfsSize = "16G";
   };

@@ -262,6 +262,7 @@
           ./modules/base.nix
           ./modules/gaming.nix
           ./modules/hardware.nix
+          ./modules/kernel.nix
           ./modules/poe2.nix
           ./modules/users.nix
           ./modules/avahi.nix
