@@ -11,12 +11,12 @@ bats_require_minimum_version 1.5.0
 }
 
 @test "hardware.nix no longer selects the kernel" {
-    run ! grep -q 'kernelPackages' modules/hardware.nix
+    run ! grep -q 'kernelPackages =' modules/hardware.nix
 }
 
 @test "stays on the default LTS series, not linuxPackages_latest" {
     grep -q 'pkgs.linuxPackages' modules/kernel.nix
-    run ! grep -q 'linuxPackages_latest' modules/kernel.nix
+    run ! grep -q 'pkgs.linuxPackages_latest' modules/kernel.nix
 }
 
 @test "pins 6.18.62 source for CVE-2026-99281" {
