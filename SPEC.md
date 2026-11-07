@@ -16,7 +16,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - C6a: Proton-GE version determined by nixpkgs pin — override via `proton-ge-bin.override` if PoE 2 compat regresses
 - C7: GGG installer `.exe` baked into ISO at build time (not committed to repo)
 - C8: stateless pendrive — all mutable state on host ext4 partition
-- C9: kernel = newest set `nvidiaPackages.stable` builds against. 26.05: default LTS `linuxPackages` (6.18) — `linuxPackages_latest` (7.2) breaks every NVIDIA branch (B15); back to `_latest` via T56
+- C9: kernel = newest set `nvidiaPackages.stable` builds against. 26.05: default LTS `linuxPackages` (6.18) — `linuxPackages_latest` (7.2) breaks every NVIDIA branch (B15); back to `_latest` via T56. Stable point release may lag kernel.org security fixes: pin `src` ahead of the channel only for a named CVE, guarded so the pin drops itself once the channel catches up (T57)
 - C10: 32-bit graphics libs enabled (Wine requires)
 - C11: PipeWire for audio (no PulseAudio daemon)
 - C12: build on macOS via `nix-builder.local` (NixOS ISO requires native x86_64-linux)
@@ -126,6 +126,7 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 - V44: `Super+M` keybind toggles Mumble window focus — game remains primary window
 - V45: launch the self-patching client copy in the working dir (player HOME) when present — PoE 2 patches that copy in place; the installer's `Program Files` copy is a frozen bootstrap, used only as first-run fallback before HOME is populated
 - V46: no NixOS release literal outside `flake.lock` (+ docs/spec prose) — scripts derive it: ISO file name from pinned nixpkgs `lib.trivial.release`; QEMU direct boot uses the built ISO's own kernel command line (first grub.cfg `linux` entry, GRUB vars dropped) + serial console only
+- V47: ISO kernel carries the CVE-2026-99281 fix (tun: `CAP_NET_ADMIN` to attach to an ownerless device) — 6.18 series >= 6.18.61
 
 ## §T — Tasks
 
@@ -198,6 +199,8 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | T55 | _  | modules: configurable hardening toggle to disable SSH/remote access for production deploys (debug-on default) | C37,V10 |
 |     |    | **— kernel (future) —**                                        |              |
 | T56 | _  | hardware.nix: return to `linuxPackages_latest` once `nvidiaPackages.stable` builds on it (NVIDIA 7.2 support, open-gpu-kernel-modules#1224) | C9,B15 |
+|     |    | **— security —**                                               |              |
+| T57 | x  | modules/kernel.nix: kernel selection out of hardware.nix; 6.18.62 `src` override while channel 6.18 < 6.18.61, self-dropping guard | C9,V47,B17 |
 
 ## §B — Bugs
 
@@ -219,3 +222,4 @@ Bootable NixOS USB pendrive. Turns any Ryzen/RTX or AMD GPU host into PoE 2 cons
 | B14 | 2026-09-10 | 26.05 bump left two `25.11` literals: `build.sh` `NIXOS_REL="25.11"` (26.05 ISO named `…-25.11-…`) and `qemu-cmd.sh` `root=LABEL=nixos-minimal-25.11-x86_64` (ISO volume label follows release, so smoke direct-kernel boot can't find root) | V46: `scripts/build/nixos-release.sh` reads pinned nixpkgs release; `scripts/test-boot/grub-param.sh` reads `init=`/`root=` from ISO grub.cfg, extract-kernel stores both, qemu-cmd uses them |
 | B15 | 2026-09-10 | 26.05 ISO eval passes, build fails: `linuxPackages_latest` = 7.2.4, Linux 7.2 drops `strncpy()`, NVIDIA 595.71.05 `os-interface.c` still calls it — proprietary (`nvidia-kernel-modules`) and open (`nvidia-open`) both fail; no NVIDIA driver supports 7.2 yet (open-gpu-kernel-modules#1224); 7.0/7.1 removed from 26.05 (EOL) | C9: `linuxPackages` (6.18.50 LTS) — probed on builder, `linux-6.18.50-modules` incl. NVIDIA 595.71.05 builds; T56 to return |
 | B16 | 2026-09-10 | 26.05 defaults `boot.initrd.systemd.enable = true`: ISO kernel params are `root=fstab loglevel=4 lsm=…` — no `root=LABEL=…`/`boot.shell_on_fail` (iso-image.nix finds media via `/dev/disk/by-label/<volumeID>`), so B14's `root-param` from grub.cfg would be `fstab`, and any appended `root=LABEL=…` (last `root=` wins) points systemd-fstab-generator at the iso9660 as `/sysroot`; smoke Phases 1/2 wait for scripted "Stage 1"/"Stage 2" banners — real 26.05 serial transcript has neither: `Booting initrd of NixOS 26.05 (Yarara) (Initrd).` then `Welcome to NixOS 26.05 (Yarara)!` | QEMU direct boot replays the ISO's whole first `linux` line (`grub-cmdline.sh` → `<boot-dir>/cmdline`) + console, replacing `grub-param.sh`/`root-param`/`init-path`; smoke Phase 1 accepts `Stage 1\|(Initrd)`, Phase 2 `Stage 2\|Welcome to \S*NixOS` (systemd colours the welcome: an ANSI run sits between "Welcome to " and "NixOS"; plain regex skipped it and matched the later getty banner → Phase 2 timed out on services it had already passed) |
+| B17 | 2026-11-07 | CVE-2026-99281 (published 2026-11-07): attaching to a persistent tun device with no owner/group skipped the `CAP_NET_ADMIN` check, so any user who can open `/dev/net/tun` could hijack it (read/inject packets). Fixed in 6.18.61; nixos-26.05 tip (`c56a87d8`, 2026-11-05) still ships 6.18.60 (`release-26.05` already at 6.18.62, waiting on Hydra) | T57: `modules/kernel.nix` overrides `linux_6_18` src to 6.18.62 (hash from nixpkgs `release-26.05` `kernels-org.json`) while `pkgs.linux_6_18.version` < 6.18.61; NVIDIA module rebuilt against it via `linuxPackagesFor`. ISO creates no persistent tun devices, so exposure was latent, not live |
