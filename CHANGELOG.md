@@ -41,9 +41,16 @@
 
 ### Base system
 
-- NixOS 26.05 base: kernel 6.18.50 LTS, NVIDIA 595.71.05, Mesa 26.1.8,
+- NixOS 26.05 base: kernel 6.18.62 LTS, NVIDIA 595.71.05, Mesa 26.1.8,
   GE-Proton11-1, umu-launcher 1.4.0, PipeWire 1.6.6 (was NixOS 25.11:
   kernel 7.0.11, NVIDIA 580.142, Mesa 25.2.6, GE-Proton10-33)
+
+### Security
+
+- Kernel 6.18.62 with the CVE-2026-99281 fix (unprivileged hijack of
+  ownerless tun devices), ahead of the NixOS 26.05 channel (6.18.60)
+- November 2026 security refresh of the NixOS 26.05 base: OpenSSH 10.6p1,
+  OpenSSL 3.6.5
 
 ### Hardware
 
